@@ -1,0 +1,26 @@
+services:
+  web:
+    build:
+      target: web
+      context: .
+    command: "./backend/start.sh"
+    environment:
+      - MONGO_DATABASE_URI=mongodb://admin:secret@mongodb:27017
+      - DOCKER_ENV=0.0.0.0
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/home/docker/code
+    depends_on:
+      - mongo
+  
+  mongo:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret
+volumes:
+  mongo-data:
