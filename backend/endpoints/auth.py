@@ -5,6 +5,9 @@ from motor.core import AgnosticDatabase
 from backend import controllers, deps, schemas, security
 from backend.custom_router import router
 
+router.tags = ["auth"]
+router.order = 1
+
 
 @router.post("/login", response_model=schemas.Token)
 async def login_with_oauth2(

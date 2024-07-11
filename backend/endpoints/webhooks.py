@@ -1,17 +1,21 @@
-from fastapi import Depends, Request
+from fastapi import BackgroundTasks, Depends, Request
 from motor.core import AgnosticDatabase
 from odmantic import ObjectId
 
 from backend import controllers, deps
 from backend.custom_router import router
-from backend.services import stripe_service
+from backend.services import notification, stripe_service
 
+router.tags = ["webhooks"]
 router.prefix = "/webhooks"
 
 
 @router.post("/stripe")
 async def stripe_event(
-    event: dict, request: Request, db: AgnosticDatabase = Depends(deps.get_db)
+    event: dict,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    db: AgnosticDatabase = Depends(deps.get_db),
 ):
     supported_events = [
         "charge.succeeded",
@@ -38,17 +42,26 @@ async def stripe_event(
 
     if e.type in [
         "checkout.session.payment_failed",
-        "charge.failed",
         "payment_intent.canceled",
+        "payment_intent.payment_failed",
+        "charge.failed",
     ]:
         order.status = "failed"
     elif e.type in [
         "checkout.session.completed",
-        "charge.succeeded",
         "payment_intent.succeeded",
+        "charge.succeeded",
     ]:
-        order.user.cart = []
         order.status = "succeeded"
+        order.user.cart = []
+
+        if e.type == "checkout.session.completed":
+            background_tasks.add_task(
+                notification.send_notification,
+                f"payment success order: {order.model_dump()}",
+                "payment",
+            )
+
     elif e.type == ["checkout.session.expired", "charge_expired"]:
         order.status = "session expired"
 

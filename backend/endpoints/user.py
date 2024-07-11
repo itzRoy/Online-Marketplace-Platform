@@ -8,7 +8,7 @@ from pydantic import EmailStr
 from backend import controllers, deps, models, schemas
 from backend.custom_router import router
 
-router.prefix = "/user"
+router.tags = ["user"]
 
 
 @router.post("/register", response_model=schemas.UserInDB)
@@ -34,6 +34,18 @@ async def create_user(
     return user
 
 
+@router.get("/user", response_model=schemas.UserInDB)
+async def get_user(
+    *,
+    current_user: models.User = Depends(deps.get_current_user),
+):
+    """
+    For testing
+    """
+
+    return current_user
+
+
 @router.post("/add-to-cart/{product_id}", response_model=schemas.Msg)
 async def add_to_cart(
     product_id: ObjectId,
@@ -41,7 +53,7 @@ async def add_to_cart(
     db: AgnosticDatabase = Depends(deps.get_db),
 ):
 
-    if id in current_user.cart:
+    if product_id in current_user.cart:
         return schemas.Msg(msg="this product is already in cart")
 
     product = await controllers.product.get(db=db, id=product_id)
@@ -63,11 +75,3 @@ async def get_user_cart(
     db: AgnosticDatabase = Depends(deps.get_db),
 ):
     return await controllers.product.get_by_ids(db=db, ids=current_user.cart)
-
-
-@router.get("/orders", response_model=List[schemas.BaseOrder])
-async def get_order(
-    current_user=Depends(deps.get_current_user),
-    db: AgnosticDatabase = Depends(deps.get_db),
-):
-    return await controllers.order.get_multi(db, user=current_user.id)

@@ -16,7 +16,7 @@ class ProductCompact(BaseProduct):
 
 class ProductCreate(BaseProduct):
     image: str
-    desctiption: str = ""
+    desctiption: str | None = ""
 
     @model_validator(mode="after")
     def validator(cls, values):

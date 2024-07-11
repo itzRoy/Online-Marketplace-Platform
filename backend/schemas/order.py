@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 from odmantic import ObjectId
-from pydantic import BaseModel
+from pydantic import AnyHttpUrl, BaseModel
 
 from .product import Product
 
@@ -15,7 +15,7 @@ class BaseOrder(BaseModel):
 
 
 class OrderCreate(BaseOrder):
-    user: ObjectId
+    pass
 
 
 class OrderUpdate(OrderCreate):
@@ -23,4 +23,12 @@ class OrderUpdate(OrderCreate):
 
 
 class OrderListItem(OrderCreate):
+    id: ObjectId
+
+
+class OrderGet(OrderCreate):
     pass
+
+
+class OrderCheckout(OrderListItem):
+    checkout: AnyHttpUrl

@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x  # Enable debugging output
 
 # Get the directory where this script resides
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"

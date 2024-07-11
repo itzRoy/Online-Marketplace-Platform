@@ -20,14 +20,23 @@ class BaseController(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         controller object with default methods to Create, Read, Update, Delete.
         """
-
         self.model = model
         self.engine: AIOEngine = get_engine()
 
-    async def get(
-        self, db: AgnosticDatabase, id: ObjectId
-    ) -> ModelType | None:
-        return await self.engine.find_one(self.model, self.model.id == id)
+    def build_eq_query(self, args: Dict[str, Any]):
+        query = []
+        # Build the query dynamically, supports only eq
+        for field, value in args.items():
+            model_field = getattr(self.model, field)
+            if not field:
+                continue
+            expression = model_field.eq(value)
+            query.append(expression)
+        return query
+
+    async def get(self, db: AgnosticDatabase, **kwargs) -> ModelType | None:
+        query = self.build_eq_query(kwargs)
+        return await self.engine.find_one(self.model, *query)
 
     async def get_by_ids(
         self, db: AgnosticDatabase, ids: List[ObjectId]
@@ -48,20 +57,9 @@ class BaseController(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if page_break
             else {}
         )
-        query = None
 
-        # Build the query dynamically
-        for field, value in filters.items():
-            field_query = getattr(self.model, field) == value
-            if query is None:
-                query = field_query
-            else:
-                query = query & field_query
-
-        if query:
-            return await self.engine.find(self.model, query, **offset)
-        else:
-            return await self.engine.find(self.model, **offset)
+        query = self.build_eq_query(filters)
+        return await self.engine.find(self.model, *query, **offset)
 
     async def create(
         self, db: AgnosticDatabase, *, obj_in: CreateSchemaType
@@ -85,7 +83,7 @@ class BaseController(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         for field in obj_data:
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
-        # TODO: Check if this saves changes with the setattr calls
+
         await self.engine.save(db_obj)
         return db_obj
 

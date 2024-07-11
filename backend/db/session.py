@@ -4,7 +4,13 @@ from pymongo.driver_info import DriverInfo
 
 from backend.config import settings
 
-DRIVER_INFO = DriverInfo(name="marketplace")
+DRIVER_INFO = DriverInfo(
+    name=(
+        settings.MONGO_DATABASE_TEST
+        if settings.IS_TESTING
+        else settings.MONGO_DATABASE
+    )
+)
 
 
 class _MongoClientSingleton:
@@ -19,13 +25,22 @@ class _MongoClientSingleton:
             )
             cls.instance.engine = AIOEngine(
                 client=cls.instance.mongo_client,
-                database=settings.MONGO_DATABASE,
+                database=(
+                    settings.MONGO_DATABASE_TEST
+                    if settings.IS_TESTING
+                    else settings.MONGO_DATABASE
+                ),
             )
         return cls.instance
 
 
 def MongoDatabase() -> core.AgnosticDatabase:
-    return _MongoClientSingleton().mongo_client[settings.MONGO_DATABASE]
+    mongo_db = (
+        settings.MONGO_DATABASE_TEST
+        if settings.IS_TESTING
+        else settings.MONGO_DATABASE
+    )
+    return _MongoClientSingleton().mongo_client[mongo_db]
 
 
 def get_engine() -> AIOEngine:

@@ -14,6 +14,18 @@ services:
     depends_on:
       - mongo
   
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
   mongo:
     image: mongo
     container_name: mongodb
@@ -24,3 +36,4 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: secret
 volumes:
   mongo-data:
+  rabbitmq_data:

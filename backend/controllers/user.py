@@ -1,3 +1,5 @@
+from typing import Any, Dict, Union
+
 from motor.core import AgnosticDatabase
 
 from backend.controllers.base import BaseController
@@ -42,6 +44,22 @@ class UserController(BaseController[User, UserCreate, UserUpdate]):
         ):
             return None
         return user
+
+    async def update(
+        self,
+        db: AgnosticDatabase,
+        *,
+        db_obj: User,
+        obj_in: Union[UserUpdate, Dict[str, Any]]
+    ) -> User:
+        if isinstance(obj_in, dict):
+            update_data = obj_in
+        else:
+            update_data = obj_in.model_dump(exclude_unset=True)
+        if update_data.get("password"):
+            hashed_password = get_password_hash(update_data["password"])
+            update_data["password"] = hashed_password
+        return await super().update(db, db_obj=db_obj, obj_in=update_data)
 
     @staticmethod
     def has_password(user: User) -> bool:

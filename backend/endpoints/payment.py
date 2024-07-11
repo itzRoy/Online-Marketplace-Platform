@@ -7,8 +7,10 @@ from backend import controllers, deps, models, schemas
 from backend.custom_router import router
 from backend.services import stripe_service
 
+router.tags = ["payment"]
 
-@router.get("/checkout", response_model=str)
+
+@router.get("/checkout", response_model=schemas.OrderCheckout)
 async def chekout(
     user: models.User = Depends(deps.get_current_user),
     db: AgnosticDatabase = Depends(deps.get_db),
@@ -42,6 +44,8 @@ async def chekout(
         )
 
     order = await controllers.order.engine.save(order)
-    return stripe_service.get_checkout_session(
+    url = stripe_service.get_checkout_session(
         products=line_products, order_id=str(order.id)
     )
+
+    return {"checkout": url, **order.model_dump()}

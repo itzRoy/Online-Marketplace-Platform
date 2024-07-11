@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=f"{BASE_DIR}/backend/.env")
 
     API_V1_STR: str = "/api"
     SECRET_KEY: str = secrets.token_urlsafe(32)
@@ -21,8 +21,11 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
-    MONGO_DATABASE: str = ""
-    MONGO_DATABASE_URI: str = ""
+    IS_TESTING: bool = False
+    MONGO_DATABASE: str
+    MONGO_DATABASE_TEST: str = "merketplace_test"
+
+    MONGO_DATABASE_URI: str
 
     MULTI_MAX: int = 10
 
@@ -51,6 +54,9 @@ class Settings(BaseSettings):
     FIREBASE_AUTH_PROVIDER_X509_CERT_URL: str
     FIREBASE_CLIENT_X509_CERT_URL: str
     FIREBASE_UNIVERSE_DOMAIN: str
+
+    # rabbit mq
+    RABBITMQ_URL: str = "amqp://guest:guest@localhost/"
 
 
 settings = Settings()

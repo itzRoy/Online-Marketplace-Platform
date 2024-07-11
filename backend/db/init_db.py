@@ -9,6 +9,8 @@ async def init_db(db: Database) -> None:
         db, email=settings.FIRST_SUPERUSER
     )
 
+    product = await controllers.product.get_multi(db=db, limit=1)
+
     if not user:
         user_in = schemas.UserCreate(
             email=settings.FIRST_SUPERUSER,
@@ -16,4 +18,13 @@ async def init_db(db: Database) -> None:
             is_superuser=True,
         )
 
-        user = await controllers.user.create(db, obj_in=user_in)
+        await controllers.user.create(db, obj_in=user_in)
+
+    if not product:
+        product_in = schemas.ProductCreate(
+            name="t-shirt",
+            desctiption="some dummy description now hopping i had Emmit",
+            image="https://storage.googleapis.com/marketplace-4b18e.appspot.com/Slack_Mark.svg",
+            price=66.6666,
+        )
+        await controllers.product.create(db=db, obj_in=product_in)

@@ -22,11 +22,11 @@ class UserCreate(UserBase):
 
 # Properties to receive via API on update
 class UserUpdate(UserBase):
-    pass
+    original: str = None
+    password: str
 
 
 class UserInDBBase(UserBase):
-    id: ObjectId | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -38,3 +38,4 @@ class User(UserInDBBase):
 # Additional properties stored in DB
 class UserInDB(UserInDBBase):
     password: SecretStr | None = None
+    cart: list[ObjectId] = []
