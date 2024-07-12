@@ -1,5 +1,4 @@
 import asyncio
-from pickle import TRUE
 from typing import Dict, Generator
 
 import pytest
@@ -28,7 +27,6 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session")
 async def db() -> Generator:
-    settings.IS_TESTING = True
     db = MongoDatabase()
     _MongoClientSingleton.instance.mongo_client.get_io_loop = (
         asyncio.get_event_loop
